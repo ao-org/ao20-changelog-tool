@@ -1,5 +1,9 @@
 # AO20 Changelog Tool
 
+Clonar repositorio, crear archivo `.env` con las credenciales correspondientes. Ver archivo `.env.example` como ejemplo.
+
+[Las credenciales se pueden conseguir acá](https://trello.com/app-key).
+
 Instalar dependencias
 ```console
 npm install
