@@ -1,21 +1,3 @@
-// const fs = require("fs");
-// const ObjectsToCsv = require("objects-to-csv");
-// const ini = require("ini");
-
-// const data = ini.parse(fs.readFileSync("./obj.ini", "utf-8"));
-
-// const arr = [];
-// for (const obj in data) {
-//   arr.push(data[obj]);
-// }
-
-// console.log(arr.length);
-
-// (async () => {
-//   const csv = new ObjectsToCsv(arr);
-//   await csv.toDisk("./test.csv");
-// })();
-
 require("dotenv").config();
 
 const prompt = require("prompt");
@@ -29,11 +11,7 @@ const authParams = `key=${trelloKey}&token=${trelloToken}`;
 
 const getList = async (listName) => {
   try {
-    const lists = (
-      await axios.get(
-        `https://api.trello.com/1/boards/1wFsgh3M/lists/all?${authParams}`
-      )
-    ).data;
+    const lists = (await axios.get(`https://api.trello.com/1/boards/1wFsgh3M/lists/all?${authParams}`)).data;
 
     const list = lists.filter((list) => list.name.includes(listName))[0];
 
@@ -43,9 +21,7 @@ const getList = async (listName) => {
 
     return list;
   } catch (e) {
-    console.log(
-      `No se ha encontrado una lista que tenga en su título "${listName}".`
-    );
+    console.log(`No se ha encontrado una lista que tenga en su título "${listName}".`);
     process.exit(1);
   }
 };
@@ -61,20 +37,14 @@ const writeChangelog = async () => {
   });
 
   const list = await getList(patchNumber);
-  const cards = (
-    await axios.get(
-      `https://api.trello.com/1/lists/${list.id}/cards?${authParams}`
-    )
-  ).data;
+  const cards = (await axios.get(`https://api.trello.com/1/lists/${list.id}/cards?${authParams}`)).data;
 
   const fileName = `${patchNumber}.txt`;
   const path = `./changelogs/${fileName}`;
 
-  const tasks = cards.map((card) => card.name);
+  const tasks = cards.map((card) => ({ title: card.name, desc: card.desc.length < 500 ? card.desc : "" }));
   if (!tasks.length) {
-    throw new Error(
-      `El parche ${patchNumber} no tiene ninguna tarea resuelta.`
-    );
+    throw new Error(`El parche ${patchNumber} no tiene ninguna tarea resuelta.`);
   }
 
   fs.writeFile(path, "", () => {});
@@ -83,7 +53,11 @@ const writeChangelog = async () => {
   });
 
   tasks.forEach((task) => {
-    logger.write(`- ${task}\n`);
+    if (task.desc) {
+      logger.write(`- ${task.title}: ${task.desc}\n`);
+    } else {
+      logger.write(`- ${task.title}\n`);
+    }
   });
 
   console.log(`Changelog guardado en ${path}`);
